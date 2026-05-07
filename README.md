@@ -276,6 +276,13 @@ For issues, questions, or suggestions:
 - GitHub Issues: [laravel-ddd/starter](https://github.com/laravel-ddd/starter/issues)
 - Documentation: [docs/commands.md](docs/commands.md)
 
+## Documentation
+
+- [DDD Guide (EN)](docs/ddd-guide.md) - Learn DDD concepts and compare with MVC
+- [Guía DDD (ES)](docs/ddd-guide-es.md) - Aprende conceptos DDD y compáralo con MVC
+- [Commands Reference](docs/commands.md) - All available commands
+- [Best Practices](docs/best-practices.md) - Coding guidelines and patterns
+
 ## License
 
 The Laravel DDD Starter kit is open-sourced software licensed under the MIT license.
