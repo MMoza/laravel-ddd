@@ -1,0 +1,51 @@
+name: Test Package Installation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ['8.4']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: curl, mbstring, zip, pdo, sqlite, pdo_sqlite
+        coverage: none
+
+    - name: Create Laravel Project
+      run: composer create-project laravel/laravel test-project --prefer-dist
+
+    - name: Install DDD Package
+      working-directory: test-project
+      run: |
+        composer require laravel-ddd/starter:dev-main \
+          --repository='{"type":"vcs","url":"../"}'
+
+    - name: Run DDD Installation
+      working-directory: test-project
+      run: php artisan ddd:install --auth=none --module=users
+
+    - name: Verify Structure
+      working-directory: test-project
+      run: |
+        test -d app/Domains/Base && echo "✅ Domains/Base exists"
+        test -d app/Domains/Users && echo "✅ Domains/Users exists"
+        test -f app/Domains/Base/Entity.php && echo "✅ Entity.php exists"
+        test -f app/Domains/Base/ValueObject.php && echo "✅ ValueObject.php exists"
+        test -f app/Domains/Users/Entities/User.php && echo "✅ User entity exists"
+        test -f app/Models/User.php && echo "✅ User model exists"
+
+    - name: Run Package Tests
+      run: composer test
