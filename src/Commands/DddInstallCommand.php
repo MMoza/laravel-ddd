@@ -65,8 +65,53 @@ class DddInstallCommand extends Command
             if (!File::exists($path)) {
                 File::makeDirectory($path, 0755, true);
                 $this->line("Created: {$dir}");
+            }
+        }
+
+        $routesDomainsPath = base_path('routes/domains');
+        if (!File::exists($routesDomainsPath)) {
+            File::makeDirectory($routesDomainsPath, 0755, true);
+            $this->line('Created: routes/domains');
+        }
+    }
+
+    protected function copyBaseClasses(): void
+    {
+        $basePath = app_path('Domains/Base');
+
+        $this->createEntityBaseClass($basePath);
+        $this->createValueObjectBaseClass($basePath);
+        $this->createRepositoryInterface($basePath);
+        $this->createServiceBaseClass($basePath);
+
+        $this->line('Created Base classes in Domains/Base');
+    }
+
+    protected function createEntityBaseClass(string $path): void
+    {
+        $content = <<<'PHP'
+<?php
+
+namespace App\Domains\Base;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
+
+abstract class Entity extends Model
+{
+    use HasUuids;
+
+    public $incrementing = false;
+    protected $keyType = 'string';
+
+    abstract public function getId(): string;
+
+    public function isSameEntity(self $entity): bool
+    {
+        return $this->getId() === $entity->getId();
     }
 }
+PHP;
 
         File::put($path . '/Entity.php', $content);
     }
