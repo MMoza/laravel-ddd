@@ -30,8 +30,8 @@ jobs:
     - name: Install DDD Package
       working-directory: test-project
       run: |
-        composer require laravel-ddd/starter:dev-main \
-          --repository='{"type":"vcs","url":"../"}'
+        composer config repositories.ddd vcs ${{ github.server_url }}/${{ github.repository }}
+        composer require laravel-ddd/starter:dev-main
 
     - name: Run DDD Installation
       working-directory: test-project
