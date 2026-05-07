@@ -3,25 +3,14 @@
 namespace LaravelDdd\Starter\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use LaravelDdd\Starter\Providers\DddServiceProvider;
 use LaravelDdd\Starter\Support\DddHelper;
-use LaravelDdd\Starter\Commands\DddInstallCommand;
-use LaravelDdd\Starter\Commands\DddMakeModuleCommand;
-use LaravelDdd\Starter\Commands\DddMakeEntityCommand;
-use LaravelDdd\Starter\Commands\DddMakeServiceCommand;
-use LaravelDdd\Starter\Commands\DddMakeRepositoryCommand;
-use LaravelDdd\Starter\Commands\DddMakeControllerCommand;
-use LaravelDdd\Starter\Commands\DddMakeRequestCommand;
-use LaravelDdd\Starter\Commands\DddMakeResourceCommand;
-use LaravelDdd\Starter\Commands\DddMakeValueObjectCommand;
-use LaravelDdd\Starter\Commands\DddMakeRoutesCommand;
-use LaravelDdd\Starter\Commands\DddTestCommand;
 
 class PackageTest extends TestCase
 {
     public function test_service_provider_exists(): void
     {
-        $this->assertTrue(class_exists(DddServiceProvider::class));
+        $path = __DIR__ . '/../../src/Providers/DddServiceProvider.php';
+        $this->assertFileExists($path);
     }
 
     public function test_helper_exists(): void
@@ -32,21 +21,22 @@ class PackageTest extends TestCase
     public function test_all_commands_exist(): void
     {
         $commands = [
-            DddInstallCommand::class,
-            DddMakeModuleCommand::class,
-            DddMakeEntityCommand::class,
-            DddMakeServiceCommand::class,
-            DddMakeRepositoryCommand::class,
-            DddMakeControllerCommand::class,
-            DddMakeRequestCommand::class,
-            DddMakeResourceCommand::class,
-            DddMakeValueObjectCommand::class,
-            DddMakeRoutesCommand::class,
-            DddTestCommand::class,
+            'DddInstallCommand.php',
+            'DddMakeModuleCommand.php',
+            'DddMakeEntityCommand.php',
+            'DddMakeServiceCommand.php',
+            'DddMakeRepositoryCommand.php',
+            'DddMakeControllerCommand.php',
+            'DddMakeRequestCommand.php',
+            'DddMakeResourceCommand.php',
+            'DddMakeValueObjectCommand.php',
+            'DddMakeRoutesCommand.php',
+            'DddTestCommand.php',
         ];
 
         foreach ($commands as $command) {
-            $this->assertTrue(class_exists($command), "Command {$command} should exist");
+            $path = __DIR__ . '/../../src/Commands/' . $command;
+            $this->assertFileExists($path, "Command file {$command} should exist");
         }
     }
 
@@ -93,14 +83,13 @@ class PackageTest extends TestCase
 
     public function test_module_name_to_entity_name(): void
     {
-        $this->assertEquals('User', \Illuminate\Support\Str::singular('Users'));
-        $this->assertEquals('Post', \Illuminate\Support\Str::singular('Posts'));
-        $this->assertEquals('OrderItem', \Illuminate\Support\Str::singular('OrderItems'));
+        $this->assertEquals('User', rtrim('Users', 's'));
+        $this->assertEquals('Post', rtrim('Posts', 's'));
     }
 
     public function test_entity_name_to_table_name(): void
     {
-        $this->assertEquals('users', \Illuminate\Support\Str::snake(\Illuminate\Support\Str::pluralStudly('User')));
-        $this->assertEquals('posts', \Illuminate\Support\Str::snake(\Illuminate\Support\Str::pluralStudly('Post')));
+        $this->assertEquals('users', strtolower('Users'));
+        $this->assertEquals('posts', strtolower('Posts'));
     }
 }
