@@ -141,4 +141,3 @@ PHP;
         return Str::snake(Str::pluralStudly($name));
     }
 }
-PHP;

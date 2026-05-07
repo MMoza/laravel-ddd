@@ -13,6 +13,7 @@ use LaravelDdd\Starter\Commands\DddMakeControllerCommand;
 use LaravelDdd\Starter\Commands\DddMakeRequestCommand;
 use LaravelDdd\Starter\Commands\DddMakeResourceCommand;
 use LaravelDdd\Starter\Commands\DddMakeRoutesCommand;
+use LaravelDdd\Starter\Commands\DddTestCommand;
 
 class DddServiceProvider extends ServiceProvider
 {
@@ -47,6 +48,7 @@ class DddServiceProvider extends ServiceProvider
             DddMakeRequestCommand::class,
             DddMakeResourceCommand::class,
             DddMakeRoutesCommand::class,
+            DddTestCommand::class,
         ]);
     }
 }

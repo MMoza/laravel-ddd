@@ -438,4 +438,3 @@ PHP;
         return Str::snake(Str::pluralStudly($this->moduleName));
     }
 }
-PHP;

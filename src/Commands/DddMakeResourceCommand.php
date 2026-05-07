@@ -59,4 +59,3 @@ PHP;
         return self::SUCCESS;
     }
 }
-PHP;
