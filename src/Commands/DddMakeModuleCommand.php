@@ -78,7 +78,72 @@ class DddMakeModuleCommand extends Command
         $entityName = $this->entityName;
         $tableName = $this->tableName();
 
-        $content = <<<PHP
+        $content = $this->getEntityContent();
+
+        $this->createFile("Entities/{$entityName}.php", $content);
+    }
+
+    protected function getEntityContent(): string
+    {
+        $moduleName = $this->moduleName;
+        $entityName = $this->entityName;
+        $tableName = $this->tableName();
+
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Domains\Users\Entities;
+
+use App\Domains\Base\Entity as BaseEntity;
+
+class User extends BaseEntity
+{
+    protected $table = 'users';
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function hasVerifiedEmail(): bool
+    {
+        return !is_null($this->email_verified_at);
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Domains\\{$moduleName}\Entities;
@@ -97,8 +162,6 @@ class {$entityName} extends BaseEntity
     }
 }
 PHP;
-
-        $this->createFile("Entities/{$entityName}.php", $content);
     }
 
     protected function createModel(): void
@@ -110,10 +173,54 @@ PHP;
             return;
         }
 
+        $content = $this->getModelContent();
+
+        File::put($modelPath, $content);
+        $this->line("Created: app/Models/{$this->entityName}.php");
+    }
+
+    protected function getModelContent(): string
+    {
         $entityName = $this->entityName;
         $tableName = $this->tableName();
 
-        $content = <<<PHP
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+
+class User extends Authenticatable
+{
+    use HasFactory, Notifiable;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Models;
@@ -127,9 +234,6 @@ class {$entityName} extends Model
     protected \$hidden = ['created_at', 'updated_at'];
 }
 PHP;
-
-        File::put($modelPath, $content);
-        $this->line("Created: app/Models/{$this->entityName}.php");
     }
 
     protected function createRepositoryInterface(): void
@@ -137,7 +241,39 @@ PHP;
         $moduleName = $this->moduleName;
         $entityName = $this->entityName;
 
-        $content = <<<PHP
+        $content = $this->getRepositoryInterfaceContent();
+
+        $this->createFile("Repositories/{$entityName}RepositoryInterface.php", $content);
+
+        $content = $this->getRepositoryImplementationContent();
+
+        $this->createFile("Repositories/Eloquent{$entityName}Repository.php", $content);
+    }
+
+    protected function getRepositoryInterfaceContent(): string
+    {
+        $moduleName = $this->moduleName;
+        $entityName = $this->entityName;
+
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Domains\Users\Repositories;
+
+use App\Domains\Base\RepositoryInterface;
+use App\Domains\Users\Entities\User;
+
+interface UserRepositoryInterface extends RepositoryInterface
+{
+    public function findByEmail(string $email): ?User;
+
+    public function createWithPassword(array $data): User;
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Domains\\{$moduleName}\Repositories;
@@ -149,10 +285,81 @@ interface {$entityName}RepositoryInterface extends RepositoryInterface
 {
 }
 PHP;
+    }
 
-        $this->createFile("Repositories/{$entityName}RepositoryInterface.php", $content);
+    protected function getRepositoryImplementationContent(): string
+    {
+        $moduleName = $this->moduleName;
+        $entityName = $this->entityName;
 
-        $content = <<<PHP
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Domains\Users\Repositories;
+
+use App\Models\User as Model;
+use App\Domains\Users\Entities\User as Entity;
+use Illuminate\Support\Facades\Hash;
+
+class EloquentUserRepository implements UserRepositoryInterface
+{
+    public function find(string $id): ?Entity
+    {
+        $model = Model::find($id);
+        return $model ? new Entity($model->toArray()) : null;
+    }
+
+    public function all(): \Illuminate\Support\Collection
+    {
+        return Model::all()->map(fn($m) => new Entity($m->toArray()));
+    }
+
+    public function create(array $data): Entity
+    {
+        $model = Model::create($data);
+        return new Entity($model->toArray());
+    }
+
+    public function update(string $id, array $data): ?Entity
+    {
+        $model = Model::find($id);
+        if (!$model) return null;
+
+        $model->update($data);
+        return new Entity($model->toArray());
+    }
+
+    public function delete(string $id): bool
+    {
+        return Model::find($id)?->delete() ?? false;
+    }
+
+    public function paginate(int $perPage = 15): \Illuminate\Pagination\LengthAwarePaginator
+    {
+        return Model::paginate($perPage);
+    }
+
+    public function findByEmail(string $email): ?Entity
+    {
+        $model = Model::where('email', $email)->first();
+        return $model ? new Entity($model->toArray()) : null;
+    }
+
+    public function createWithPassword(array $data): Entity
+    {
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $model = Model::create($data);
+        return new Entity($model->toArray());
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Domains\\{$moduleName}\Repositories;
@@ -199,8 +406,6 @@ class Eloquent{$entityName}Repository implements {$entityName}RepositoryInterfac
     }
 }
 PHP;
-
-        $this->createFile("Repositories/Eloquent{$entityName}Repository.php", $content);
     }
 
     protected function createService(): void
@@ -208,7 +413,66 @@ PHP;
         $moduleName = $this->moduleName;
         $entityName = $this->entityName;
 
-        $content = <<<PHP
+        $content = $this->getServiceContent();
+
+        $this->createFile("Services/{$entityName}Service.php", $content);
+    }
+
+    protected function getServiceContent(): string
+    {
+        $moduleName = $this->moduleName;
+        $entityName = $this->entityName;
+
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Domains\Users\Services;
+
+use App\Domains\Base\Service as BaseService;
+use App\Domains\Users\Repositories\UserRepositoryInterface;
+use Illuminate\Support\Collection;
+
+class UserService extends BaseService
+{
+    public function __construct(
+        protected UserRepositoryInterface $repository
+    ) {}
+
+    public function getAll(): Collection
+    {
+        return $this->repository->all();
+    }
+
+    public function find(string $id): ?mixed
+    {
+        return $this->repository->find($id);
+    }
+
+    public function findByEmail(string $email): ?mixed
+    {
+        return $this->repository->findByEmail($email);
+    }
+
+    public function create(array $data): mixed
+    {
+        return $this->repository->createWithPassword($data);
+    }
+
+    public function update(string $id, array $data): ?mixed
+    {
+        return $this->repository->update($id, $data);
+    }
+
+    public function delete(string $id): bool
+    {
+        return $this->repository->delete($id);
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Domains\\{$moduleName}\Services;
@@ -249,8 +513,6 @@ class {$entityName}Service extends BaseService
     }
 }
 PHP;
-
-        $this->createFile("Services/{$entityName}Service.php", $content);
     }
 
     protected function createController(): void
@@ -258,7 +520,72 @@ PHP;
         $moduleName = $this->moduleName;
         $entityName = $this->entityName;
 
-        $content = <<<PHP
+        $content = $this->getControllerContent();
+
+        $this->createFile("Http/Controllers/{$entityName}Controller.php", $content);
+    }
+
+    protected function getControllerContent(): string
+    {
+        $moduleName = $this->moduleName;
+        $entityName = $this->entityName;
+
+        if ($entityName === 'User') {
+            return <<<'PHP'
+<?php
+
+namespace App\Domains\Users\Http\Controllers;
+
+use App\Http\Controllers\Controller;
+use App\Domains\Users\Services\UserService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+
+class UserController extends Controller
+{
+    public function __construct(
+        protected UserService $service
+    ) {}
+
+    public function index(): JsonResponse
+    {
+        return response()->json(['data' => $this->service->getAll()]);
+    }
+
+    public function show(string $id): JsonResponse
+    {
+        $entity = $this->service->find($id);
+        if (!$entity) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+        return response()->json(['data' => $entity]);
+    }
+
+    public function store(Request $request): JsonResponse
+    {
+        $entity = $this->service->create($request->validated());
+        return response()->json(['data' => $entity], 201);
+    }
+
+    public function update(Request $request, string $id): JsonResponse
+    {
+        $entity = $this->service->update($id, $request->validated());
+        if (!$entity) {
+            return response()->json(['message' => 'Not found'], 404);
+        }
+        return response()->json(['data' => $entity]);
+    }
+
+    public function destroy(string $id): JsonResponse
+    {
+        $deleted = $this->service->delete($id);
+        return response()->json(['success' => $deleted]);
+    }
+}
+PHP;
+        }
+
+        return <<<PHP
 <?php
 
 namespace App\Domains\\{$moduleName}\Http\Controllers;
@@ -310,8 +637,6 @@ class {$entityName}Controller extends Controller
     }
 }
 PHP;
-
-        $this->createFile("Http/Controllers/{$entityName}Controller.php", $content);
     }
 
     protected function createFormRequests(): void
@@ -433,10 +758,39 @@ PHP;
 
     protected function createMigration(): void
     {
-        $timestamp = date('Y_m_d_His');
         $tableName = $this->tableName();
+        $timestamp = date('Y_m_d_His');
 
-        $content = <<<PHP
+        $existingMigrations = glob(database_path("migrations/*_create_{$tableName}_table.php"));
+
+        if (!empty($existingMigrations)) {
+            $existingFile = basename($existingMigrations[0]);
+            if (!$this->confirm("Migration '{$existingFile}' already exists. Overwrite?")) {
+                $this->line("Skipped: {$existingFile}");
+                return;
+            }
+            foreach ($existingMigrations as $file) {
+                File::delete($file);
+            }
+        }
+
+        $content = $this->getMigrationContent();
+
+        $migrationPath = database_path("migrations/{$timestamp}_create_{$tableName}_table.php");
+        File::put($migrationPath, $content);
+        $this->line("Created: database/migrations/{$timestamp}_create_{$tableName}_table.php");
+    }
+
+    protected function getMigrationContent(): string
+    {
+        $tableName = $this->tableName();
+        $entityName = $this->entityName;
+
+        if ($entityName === 'User') {
+            return $this->getUsersMigrationContent();
+        }
+
+        return <<<PHP
 <?php
 
 use Illuminate\Database\Migrations\Migration;
@@ -459,10 +813,38 @@ return new class extends Migration
     }
 };
 PHP;
+    }
 
-        $migrationPath = database_path("migrations/{$timestamp}_create_{$tableName}_table.php");
-        File::put($migrationPath, $content);
-        $this->line("Created: database/migrations/{$timestamp}_create_{$tableName}_table.php");
+    protected function getUsersMigrationContent(): string
+    {
+        return <<<'PHP'
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        Schema::create('users', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->string('password');
+            $table->rememberToken();
+            $table->timestamps();
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::dropIfExists('users');
+    }
+};
+PHP;
     }
 
     protected function createTests(): void
