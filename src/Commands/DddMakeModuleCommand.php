@@ -16,10 +16,12 @@ class DddMakeModuleCommand extends Command
 
     protected string $moduleName;
     protected string $modulePath;
+    protected string $entityName;
 
     public function handle(): int
     {
         $this->moduleName = Str::studly($this->argument('name'));
+        $this->entityName = Str::singular($this->moduleName);
         $this->modulePath = config('ddd.domains_path') . '/' . $this->moduleName;
 
         if (File::exists($this->modulePath) && !$this->option('force')) {
@@ -32,6 +34,7 @@ class DddMakeModuleCommand extends Command
         $this->createRepositoryInterface();
         $this->createService();
         $this->createController();
+        $this->createFormRequests();
         $this->createRoutes();
         $this->createServiceProvider();
         $this->createMigration();
@@ -79,7 +82,7 @@ namespace App\Domains\{$this->moduleName}\Entities;
 
 use App\Domains\Base\Entity as BaseEntity;
 
-class {$this->moduleName} extends BaseEntity
+class {$this->entityName} extends BaseEntity
 {
     protected \$table = '{$this->tableName()}';
 
@@ -92,11 +95,18 @@ class {$this->moduleName} extends BaseEntity
 }
 PHP;
 
-        $this->createFile("Entities/{$this->moduleName}.php", $content);
+        $this->createFile("Entities/{$this->entityName}.php", $content);
     }
 
     protected function createModel(): void
     {
+        $modelPath = app_path("Models/{$this->entityName}.php");
+
+        if (File::exists($modelPath)) {
+            $this->line("Skipped: app/Models/{$this->entityName}.php (already exists)");
+            return;
+        }
+
         $content = <<<PHP
 <?php
 
@@ -104,7 +114,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class {$this->moduleName} extends Model
+class {$this->entityName} extends Model
 {
     protected \$table = '{$this->tableName()}';
     protected \$fillable = [];
@@ -112,12 +122,8 @@ class {$this->moduleName} extends Model
 }
 PHP;
 
-        $path = app_path("Models/{$this->moduleName}.php");
-        if (!File::exists(dirname($path))) {
-            File::makeDirectory(dirname($path), 0755, true);
-        }
-        File::put($path, $content);
-        $this->line("Created: app/Models/{$this->moduleName}.php");
+        File::put($modelPath, $content);
+        $this->line("Created: app/Models/{$this->entityName}.php");
     }
 
     protected function createRepositoryInterface(): void
@@ -128,24 +134,24 @@ PHP;
 namespace App\Domains\{$this->moduleName}\Repositories;
 
 use App\Domains\Base\RepositoryInterface;
-use App\Domains\{$this->moduleName}\Entities\{$this->moduleName};
+use App\Domains\{$this->moduleName}\Entities\{$this->entityName};
 
-interface {$this->moduleName}RepositoryInterface extends RepositoryInterface
+interface {$this->entityName}RepositoryInterface extends RepositoryInterface
 {
 }
 PHP;
 
-        $this->createFile("Repositories/{$this->moduleName}RepositoryInterface.php", $content);
+        $this->createFile("Repositories/{$this->entityName}RepositoryInterface.php", $content);
 
         $content = <<<PHP
 <?php
 
 namespace App\Domains\{$this->moduleName}\Repositories;
 
-use App\Models\{$this->moduleName} as Model;
-use App\Domains\{$this->moduleName}\Entities\{$this->moduleName} as Entity;
+use App\Models\{$this->entityName} as Model;
+use App\Domains\{$this->moduleName}\Entities\{$this->entityName} as Entity;
 
-class {$this->moduleName}Repository implements {$this->moduleName}RepositoryInterface
+class Eloquent{$this->entityName}Repository implements {$this->entityName}RepositoryInterface
 {
     public function find(string \$id): ?Entity
     {
@@ -185,7 +191,7 @@ class {$this->moduleName}Repository implements {$this->moduleName}RepositoryInte
 }
 PHP;
 
-        $this->createFile("Repositories/Eloquent{$this->moduleName}Repository.php", $content);
+        $this->createFile("Repositories/Eloquent{$this->entityName}Repository.php", $content);
     }
 
     protected function createService(): void
@@ -196,13 +202,13 @@ PHP;
 namespace App\Domains\{$this->moduleName}\Services;
 
 use App\Domains\Base\Service as BaseService;
-use App\Domains\{$this->moduleName}\Repositories\{$this->moduleName}RepositoryInterface;
+use App\Domains\{$this->moduleName}\Repositories\{$this->entityName}RepositoryInterface;
 use Illuminate\Support\Collection;
 
-class {$this->moduleName}Service extends BaseService
+class {$this->entityName}Service extends BaseService
 {
     public function __construct(
-        protected {$this->moduleName}RepositoryInterface \$repository
+        protected {$this->entityName}RepositoryInterface \$repository
     ) {}
 
     public function getAll(): Collection
@@ -232,7 +238,7 @@ class {$this->moduleName}Service extends BaseService
 }
 PHP;
 
-        $this->createFile("Services/{$this->moduleName}Service.php", $content);
+        $this->createFile("Services/{$this->entityName}Service.php", $content);
     }
 
     protected function createController(): void
@@ -243,13 +249,14 @@ PHP;
 namespace App\Domains\{$this->moduleName}\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Domains\{$this->moduleName}\Services\{$this->moduleName}Service;
+use App\Domains\{$this->moduleName}\Services\{$this->entityName}Service;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
-class {$this->moduleName}Controller extends Controller
+class {$this->entityName}Controller extends Controller
 {
     public function __construct(
-        protected {$this->moduleName}Service \$service
+        protected {$this->entityName}Service \$service
     ) {}
 
     public function index(): JsonResponse
@@ -289,7 +296,60 @@ class {$this->moduleName}Controller extends Controller
 }
 PHP;
 
-        $this->createFile("Http/Controllers/{$this->moduleName}Controller.php", $content);
+        $this->createFile("Http/Controllers/{$this->entityName}Controller.php", $content);
+    }
+
+    protected function createFormRequests(): void
+    {
+        $storeContent = <<<PHP
+<?php
+
+namespace App\Domains\{$this->moduleName}\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class Store{$this->entityName}Request extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
+PHP;
+
+        $this->createFile("Http/Requests/Store{$this->entityName}Request.php", $storeContent);
+
+        $updateContent = <<<PHP
+<?php
+
+namespace App\Domains\{$this->moduleName}\Http\Requests;
+
+use Illuminate\Foundation\Http\FormRequest;
+
+class Update{$this->entityName}Request extends FormRequest
+{
+    public function authorize(): bool
+    {
+        return true;
+    }
+
+    public function rules(): array
+    {
+        return [
+            //
+        ];
+    }
+}
+PHP;
+
+        $this->createFile("Http/Requests/Update{$this->entityName}Request.php", $updateContent);
     }
 
     protected function createRoutes(): void
@@ -297,11 +357,11 @@ PHP;
         $content = <<<PHP
 <?php
 
-use App\Domains\{$this->moduleName}\Http\Controllers\{$this->moduleName}Controller;
+use App\Domains\{$this->moduleName}\Http\Controllers\{$this->entityName}Controller;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('api')->group(function () {
-    Route::resource('{$this->routeName()}', {$this->moduleName}Controller::class);
+    Route::resource('{$this->routeName()}', {$this->entityName}Controller::class);
 });
 PHP;
 
@@ -316,22 +376,22 @@ PHP;
 namespace App\Domains\{$this->moduleName}\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use App\Domains\{$this->moduleName}\Repositories\{$this->moduleName}RepositoryInterface;
-use App\Domains\{$this->moduleName}\Repositories\Eloquent{$this->moduleName}Repository;
-use App\Domains\{$this->moduleName}\Services\{$this->moduleName}Service;
+use App\Domains\{$this->moduleName}\Repositories\{$this->entityName}RepositoryInterface;
+use App\Domains\{$this->moduleName}\Repositories\Eloquent{$this->entityName}Repository;
+use App\Domains\{$this->moduleName}\Services\{$this->entityName}Service;
 
 class {$this->moduleName}ServiceProvider extends ServiceProvider
 {
     public function register(): void
     {
         \$this->app->bind(
-            {$this->moduleName}RepositoryInterface::class,
-            Eloquent{$this->moduleName}Repository::class
+            {$this->entityName}RepositoryInterface::class,
+            Eloquent{$this->entityName}Repository::class
         );
 
-        \$this->app->singleton({$this->moduleName}Service::class, function (\$app) {
-            return new {$this->moduleName}Service(
-                \$app->make({$this->moduleName}RepositoryInterface::class)
+        \$this->app->singleton({$this->entityName}Service::class, function (\$app) {
+            return new {$this->entityName}Service(
+                \$app->make({$this->entityName}RepositoryInterface::class)
             );
         });
     }
@@ -384,13 +444,13 @@ PHP;
 namespace Tests\Unit\Domains\{$this->moduleName}\Entities;
 
 use Tests\TestCase;
-use App\Domains\{$this->moduleName}\Entities\{$this->moduleName};
+use App\Domains\{$this->moduleName}\Entities\{$this->entityName};
 
-class {$this->moduleName}Test extends TestCase
+class {$this->entityName}Test extends TestCase
 {
-    public function test_{$this->moduleName}_can_be_created(): void
+    public function test_{$this->entityName}_can_be_created(): void
     {
-        \$entity = new {$this->moduleName}([
+        \$entity = new {$this->entityName}([
             'id' => 'test-uuid',
         ]);
 
@@ -399,7 +459,7 @@ class {$this->moduleName}Test extends TestCase
 }
 PHP;
 
-        $this->createFile("Tests/Unit/Entities/{$this->moduleName}Test.php", $content);
+        $this->createFile("Tests/Unit/Entities/{$this->entityName}Test.php", $content);
 
         $content = <<<PHP
 <?php
@@ -408,9 +468,9 @@ namespace Tests\Feature\Domains\{$this->moduleName};
 
 use Tests\TestCase;
 
-class {$this->moduleName}FeatureTest extends TestCase
+class {$this->entityName}FeatureTest extends TestCase
 {
-    public function test_{$this->moduleName}_index_returns_json(): void
+    public function test_{$this->entityName}_index_returns_json(): void
     {
         \$response = \$this->getJson('/api/{$this->routeName()}');
         \$response->assertStatus(200);
@@ -418,7 +478,7 @@ class {$this->moduleName}FeatureTest extends TestCase
 }
 PHP;
 
-        $this->createFile("Tests/Feature/{$this->moduleName}FeatureTest.php", $content);
+        $this->createFile("Tests/Feature/{$this->entityName}FeatureTest.php", $content);
     }
 
     protected function createFile(string $relativePath, string $content): void
@@ -430,11 +490,11 @@ PHP;
 
     protected function tableName(): string
     {
-        return Str::snake(Str::pluralStudly($this->moduleName));
+        return Str::snake(Str::pluralStudly($this->entityName));
     }
 
     protected function routeName(): string
     {
-        return Str::snake(Str::pluralStudly($this->moduleName));
+        return Str::snake(Str::pluralStudly($this->entityName));
     }
 }
