@@ -1,0 +1,34 @@
+<?php
+
+namespace App\Domains\{{ namespace }}\ValueObjects;
+
+use App\Domains\Base\ValueObject as BaseValueObject;
+
+class {{ className }} extends BaseValueObject
+{
+    public function __construct(
+        protected mixed $value
+    ) {
+        $this->validate();
+    }
+
+    protected function validate(): void
+    {
+        // Add validation logic here
+    }
+
+    public function getValue(): mixed
+    {
+        return $this->value;
+    }
+
+    public function isSame(BaseValueObject $valueObject): bool
+    {
+        return $this->getValue() === $valueObject->getValue();
+    }
+
+    public function __toString(): string
+    {
+        return (string) $this->value;
+    }
+}

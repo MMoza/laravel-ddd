@@ -1,0 +1,10 @@
+<?php
+
+namespace App\Domains\{{ namespace }}\Repositories;
+
+use App\Domains\Base\RepositoryInterface;
+use App\Domains\{{ namespace }}\Entities\{{ entity }};
+
+interface {{ className }}Interface extends RepositoryInterface
+{
+}

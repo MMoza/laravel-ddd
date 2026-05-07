@@ -1,0 +1,17 @@
+<?php
+
+namespace App\Domains\{{ namespace }}\Entities;
+
+use App\Domains\Base\Entity as BaseEntity;
+
+class {{ className }} extends BaseEntity
+{
+    protected $table = '{{ tableName }}';
+
+    protected $fillable = [];
+
+    public function getId(): string
+    {
+        return $this->id;
+    }
+}

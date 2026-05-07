@@ -1,58 +1,281 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Laravel DDD Starter Kit
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A powerful and flexible Composer package that transforms a fresh Laravel 13/12 project into a fully structured Domain-Driven Design (DDD) architecture.
 
-## About Laravel
+## Features
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+✅ **Complete DDD Structure** - Organized by domains/modules  
+✅ **Base Classes** - Entity, ValueObject, Repository, Service  
+✅ **10+ Artisan Commands** - Generate modules, entities, services, and more  
+✅ **Interactive Installation** - Choose auth method (Breeze, Sanctum, or none)  
+✅ **Sample Module** - Optional Users module with full examples  
+✅ **API Ready** - Routes organized by domain  
+✅ **Testing Structure** - Tests organized per module  
+✅ **Laravel 13 & 12 Support** - Works with both versions  
+✅ **PHP 8.2+** - Modern PHP requirements  
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
-
-## Learning Laravel
-
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
-
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+### 1. Create a new Laravel project
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer create-project laravel/laravel my-project
+cd my-project
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+### 2. Require the DDD Starter package
 
-## Contributing
+```bash
+composer require laravel-ddd/starter
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 3. Run the interactive installer
 
-## Code of Conduct
+```bash
+php artisan ddd:install
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+You'll be asked:
+- **Authentication**: None / Breeze / Sanctum
+- **Sample Module**: None / Users (recommended)
 
-## Security Vulnerabilities
+That's it! Your project is now DDD-structured.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## Quick Start
+
+### Create a new module
+
+```bash
+php artisan ddd:make-module Products
+```
+
+This creates:
+- Entities
+- Repositories (interface + Eloquent implementation)
+- Services
+- Controllers
+- Routes
+- Migrations
+- Tests
+
+### Generate individual components
+
+```bash
+# Create an entity
+php artisan ddd:make-entity Product Products --migration --model
+
+# Create a service
+php artisan ddd:make-service ProductService Products
+
+# Create a controller
+php artisan ddd:make-controller ProductController Products
+
+# Create form requests
+php artisan ddd:make-request StoreProductRequest Products
+php artisan ddd:make-request UpdateProductRequest Products
+
+# Create API resources
+php artisan ddd:make-resource ProductResource Products
+
+# Create value objects
+php artisan ddd:make-value-object Price Products
+```
+
+## Project Structure
+
+After installation, your project will look like:
+
+```
+app/
+├── Domains/                      # Your business logic organized by domain
+│   ├── Base/                     # Shared base classes
+│   │   ├── Entity.php            # Base entity class
+│   │   ├── ValueObject.php       # Base value object class
+│   │   ├── RepositoryInterface.php
+│   │   └── Service.php           # Base service class
+│   │
+│   └── [Module]/                 # e.g., Users, Products, Orders
+│       ├── Entities/
+│       ├── ValueObjects/
+│       ├── Repositories/
+│       │   ├── ProductRepositoryInterface.php
+│       │   └── EloquentProductRepository.php
+│       ├── Services/
+│       │   └── ProductService.php
+│       ├── Http/
+│       │   ├── Controllers/
+│       │   │   └── ProductController.php
+│       │   ├── Requests/
+│       │   │   ├── StoreProductRequest.php
+│       │   │   └── UpdateProductRequest.php
+│       │   └── Resources/
+│       │       └── ProductResource.php
+│       ├── Routes/
+│       │   └── Products.php
+│       ├── Providers/
+│       │   └── ProductsServiceProvider.php
+│       ├── Database/
+│       │   └── Migrations/
+│       └── Tests/
+│           ├── Unit/
+│           │   ├── Entities/
+│           │   └── Services/
+│           └── Feature/
+│
+├── Application/                  # Use cases and actions
+├── Infrastructure/               # External implementations
+│   ├── Persistence/              # Eloquent repositories
+│   └── HTTP/                     # HTTP adapters
+├── Support/                      # Helpers and utilities
+├── Http/Controllers/             # Thin controllers
+└── Models/                       # Eloquent models (no business logic)
+
+routes/
+├── api.php
+├── web.php
+└── domains/                      # Domain-specific routes
+
+tests/
+├── Unit/Domains/
+└── Feature/Domains/
+
+database/
+├── migrations/
+├── factories/
+└── seeders/
+```
+
+## Available Commands
+
+| Command | Description |
+|---------|-------------|
+| `ddd:install` | Install DDD structure interactively |
+| `ddd:make-module` | Create a complete module |
+| `ddd:make-entity` | Create an entity + model + migration |
+| `ddd:make-service` | Create a service class |
+| `ddd:make-repository` | Create repository interface + implementation |
+| `ddd:make-value-object` | Create a value object |
+| `ddd:make-controller` | Create a thin controller |
+| `ddd:make-request` | Create a form request |
+| `ddd:make-resource` | Create an API resource |
+| `ddd:make-routes` | Generate routes for a module |
+
+For detailed documentation, see [docs/commands.md](docs/commands.md)
+
+## Example: Building a Blog
+
+```bash
+# 1. Create the Posts module
+php artisan ddd:make-module Posts
+
+# 2. Create additional entity for comments
+php artisan ddd:make-entity Comment Posts --migration --model
+
+# 3. Create form requests
+php artisan ddd:make-request StorePostRequest Posts
+php artisan ddd:make-request UpdatePostRequest Posts
+
+# 4. Create API resources
+php artisan ddd:make-resource PostResource Posts
+php artisan ddd:make-resource CommentResource Posts
+
+# 5. Update routes/api.php
+# Add: require app_path('Domains/Posts/Routes/Posts.php');
+
+# 6. Run migrations
+php artisan migrate
+```
+
+## Architecture Principles
+
+### Entity
+Base class for domain entities. Contains business logic related to the entity itself.
+
+```php
+class User extends Entity
+{
+    public function getId(): string
+    {
+        return $this->id;
+    }
+}
+```
+
+### ValueObject
+Immutable objects representing values in your domain.
+
+```php
+class Email extends ValueObject
+{
+    public function __construct(protected string $value) {}
+    
+    public function getValue(): mixed { return $this->value; }
+    public function isSame(ValueObject $vo): bool { ... }
+    public function __toString(): string { ... }
+}
+```
+
+### Repository
+Abstraction layer between domain and data persistence.
+
+```php
+interface UserRepositoryInterface extends RepositoryInterface {}
+class EloquentUserRepository implements UserRepositoryInterface {}
+```
+
+### Service
+Orchestrates business operations using repositories.
+
+```php
+class UserService extends Service
+{
+    public function __construct(protected UserRepositoryInterface $repository) {}
+}
+```
+
+### Controller
+Thin controller that delegates to services.
+
+```php
+class UserController extends Controller
+{
+    public function store(Request $request, UserService $service)
+    {
+        $user = $service->create($request->validated());
+        return response()->json(['data' => $user], 201);
+    }
+}
+```
+
+## Configuration
+
+The package publishes a config file at `config/ddd.php`:
+
+```php
+return [
+    'domains_path' => app_path('Domains'),
+    'application_path' => app_path('Application'),
+    'infrastructure_path' => app_path('Infrastructure'),
+    'support_path' => app_path('Support'),
+    'providers_path' => app_path('Providers'),
+    'default_namespace' => 'App\\Domains',
+    'generate_tests' => true,
+    'routes_path' => base_path('routes/domains'),
+];
+```
+
+## Compatibility
+
+- **Laravel**: 13.x, 12.x
+- **PHP**: 8.3, 8.2
+- **License**: MIT
+
+## Support
+
+For issues, questions, or suggestions:
+- GitHub Issues: [laravel-ddd/starter](https://github.com/laravel-ddd/starter/issues)
+- Documentation: [docs/commands.md](docs/commands.md)
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+The Laravel DDD Starter kit is open-sourced software licensed under the MIT license.

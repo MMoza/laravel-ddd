@@ -1,0 +1,32 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        php-version: ['8.2', '8.3']
+        laravel-version: ['12.*', '13.*']
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup PHP ${{ matrix.php-version }}
+      uses: shivammathur/setup-php@v2
+      with:
+        php-version: ${{ matrix.php-version }}
+        extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
+        coverage: xdebug
+
+    - name: Install dependencies
+      run: composer install --prefer-dist --no-progress
+
+    - name: Run tests
+      run: composer test
