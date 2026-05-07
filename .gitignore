@@ -10,3 +10,4 @@ composer.lock
 *~
 node_modules/
 npm-debug.log
+.phpunit.cache/
