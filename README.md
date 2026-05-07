@@ -12,7 +12,7 @@ A powerful and flexible Composer package that transforms a fresh Laravel 13/12 p
 ✅ **API Ready** - Routes organized by domain  
 ✅ **Testing Structure** - Tests organized per module  
 ✅ **Laravel 13 & 12 Support** - Works with both versions  
-✅ **PHP 8.2+** - Modern PHP requirements  
+✅ **PHP 8.4+** - Modern PHP requirements  
 
 ## Installation
 
@@ -267,7 +267,7 @@ return [
 ## Compatibility
 
 - **Laravel**: 13.x, 12.x
-- **PHP**: 8.3, 8.2
+- **PHP**: 8.4+
 - **License**: MIT
 
 ## Support

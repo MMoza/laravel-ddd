@@ -5,7 +5,7 @@ Crear un paquete Composer instalable que transforme un proyecto Laravel 13/12 en
 
 ## Compatibilidad
 - Laravel: 13.x y 12.x
-- PHP: 8.3+ (8.2 opcional)
+- PHP: 8.4+
 
 ## Paquete
 - Nombre: `laravel-ddd/starter`
