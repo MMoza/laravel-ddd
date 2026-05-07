@@ -9,18 +9,32 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    name: Test (auth=${{ matrix.auth }}, module=${{ matrix.module }})
 
     strategy:
+      fail-fast: false
       matrix:
-        php-version: ['8.4']
+        include:
+          - auth: none
+            module: none
+          - auth: none
+            module: users
+          - auth: breeze
+            module: none
+          - auth: breeze
+            module: users
+          - auth: sanctum
+            module: none
+          - auth: sanctum
+            module: users
 
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup PHP ${{ matrix.php-version }}
+    - name: Setup PHP
       uses: shivammathur/setup-php@v2
       with:
-        php-version: ${{ matrix.php-version }}
+        php-version: '8.4'
         extensions: curl, mbstring, zip, pdo, sqlite, pdo_sqlite
         coverage: none
 
@@ -41,14 +55,26 @@ jobs:
 
     - name: Run DDD Installation
       working-directory: test-project
-      run: php artisan ddd:install --auth=none --module=users
+      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }}
 
     - name: Verify Structure
       working-directory: test-project
       run: |
         test -d app/Domains/Base && echo "✅ Domains/Base exists"
-        test -d app/Domains/Users && echo "✅ Domains/Users exists"
         test -f app/Domains/Base/Entity.php && echo "✅ Entity.php exists"
         test -f app/Domains/Base/ValueObject.php && echo "✅ ValueObject.php exists"
-        test -f app/Domains/Users/Entities/User.php && echo "✅ User entity exists"
-        test -f app/Models/User.php && echo "✅ User model exists"
+        
+        if [ "${{ matrix.module }}" = "users" ]; then
+          test -d app/Domains/Users && echo "✅ Domains/Users exists"
+          test -f app/Domains/Users/Entities/User.php && echo "✅ User entity exists"
+          test -f app/Models/User.php && echo "✅ User model exists"
+        fi
+        
+        if [ "${{ matrix.auth }}" = "breeze" ]; then
+          test -f routes/auth.php && echo "✅ Breeze routes exist"
+        fi
+        
+        if [ "${{ matrix.auth }}" = "sanctum" ]; then
+          php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider" --force > /dev/null 2>&1 || true
+          test -f config/sanctum.php && echo "✅ Sanctum config exists"
+        fi
