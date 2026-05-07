@@ -248,7 +248,7 @@ PHP;
     {
         $this->info('Installing Laravel Breeze...');
         $this->executeShellCommand(['composer', 'require', 'laravel/breeze', '--dev']);
-        $this->call('breeze:install', ['stack' => 'blade', '--quiet' => true]);
+        $this->executeShellCommand(['php', 'artisan', 'breeze:install', 'blade', '--quiet']);
     }
 
     protected function installSanctum(): void
