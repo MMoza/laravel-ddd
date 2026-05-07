@@ -24,6 +24,12 @@ jobs:
         extensions: curl, mbstring, zip, pdo, sqlite, pdo_sqlite
         coverage: none
 
+    - name: Install Package Dependencies
+      run: composer install --no-interaction
+
+    - name: Run Package Tests
+      run: ./vendor/bin/phpunit
+
     - name: Create Laravel Project
       run: composer create-project laravel/laravel test-project --prefer-dist
 
@@ -46,6 +52,3 @@ jobs:
         test -f app/Domains/Base/ValueObject.php && echo "✅ ValueObject.php exists"
         test -f app/Domains/Users/Entities/User.php && echo "✅ User entity exists"
         test -f app/Models/User.php && echo "✅ User model exists"
-
-    - name: Run Package Tests
-      run: composer test
