@@ -2,9 +2,9 @@ name: Tests
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
   test:
@@ -13,20 +13,19 @@ jobs:
     strategy:
       matrix:
         php-version: ['8.4']
-        laravel-version: ['12.*', '13.*']
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup PHP ${{ matrix.php-version }}
       uses: shivammathur/setup-php@v2
       with:
         php-version: ${{ matrix.php-version }}
-        extensions: curl, mbstring, zip, pcntl, pdo, sqlite, pdo_sqlite
-        coverage: xdebug
+        extensions: curl, mbstring, zip, pdo, sqlite, pdo_sqlite
+        coverage: none
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress
+      run: composer install --prefer-dist --no-progress --no-interaction
 
     - name: Run tests
       run: composer test

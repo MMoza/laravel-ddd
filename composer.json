@@ -8,7 +8,8 @@
         "laravel/framework": "^12.0|^13.0"
     },
     "require-dev": {
-        "php": "^8.2"
+        "phpunit/phpunit": "^11.0|^12.0",
+        "laravel/pint": "^1.27"
     },
     "autoload": {
         "psr-4": {
@@ -26,6 +27,11 @@
                 "LaravelDdd\\Starter\\Providers\\DddServiceProvider"
             ]
         }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "pint --test",
+        "format": "pint"
     },
     "config": {
         "sort-packages": true
