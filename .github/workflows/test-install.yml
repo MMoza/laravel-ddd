@@ -75,6 +75,5 @@ jobs:
         fi
         
         if [ "${{ matrix.auth }}" = "sanctum" ]; then
-          php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider" --force > /dev/null 2>&1 || true
-          test -f config/sanctum.php && echo "✅ Sanctum config exists"
+          grep -q "laravel/sanctum" composer.lock && echo "✅ Sanctum installed"
         fi

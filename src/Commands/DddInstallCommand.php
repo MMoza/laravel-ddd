@@ -4,6 +4,7 @@ namespace LaravelDdd\Starter\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\File;
+use Symfony\Component\Process\Process;
 
 class DddInstallCommand extends Command
 {
@@ -245,13 +246,29 @@ PHP;
 
     protected function installBreeze(): void
     {
-        $this->warn('Run: composer require laravel/breeze --dev');
-        $this->warn('Then run: php artisan breeze:install');
+        $this->info('Installing Laravel Breeze...');
+        $this->runCommand(['composer', 'require', 'laravel/breeze', '--dev']);
+        $this->call('breeze:install', ['stack' => 'blade', '--quiet' => true]);
     }
 
     protected function installSanctum(): void
     {
-        $this->warn('Run: composer require laravel/sanctum --dev');
-        $this->warn('Then run: php artisan vendor:publish --provider="Laravel\Sanctum\SanctumServiceProvider"');
+        $this->info('Installing Laravel Sanctum...');
+        $this->runCommand(['composer', 'require', 'laravel/sanctum', '--dev']);
+        $this->call('vendor:publish', ['--provider' => 'Laravel\Sanctum\SanctumServiceProvider', '--force' => true]);
+    }
+
+    protected function runCommand(array $command): void
+    {
+        $process = new Process($command, base_path());
+        $process->setTimeout(300);
+        $process->run(function ($type, $buffer) {
+            $this->line($buffer);
+        });
+
+        if (!$process->isSuccessful()) {
+            $this->error("Command failed: " . implode(' ', $command));
+            $this->error($process->getErrorOutput());
+        }
     }
 }
