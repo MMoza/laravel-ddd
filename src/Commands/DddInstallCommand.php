@@ -247,18 +247,18 @@ PHP;
     protected function installBreeze(): void
     {
         $this->info('Installing Laravel Breeze...');
-        $this->runCommand(['composer', 'require', 'laravel/breeze', '--dev']);
+        $this->executeShellCommand(['composer', 'require', 'laravel/breeze', '--dev']);
         $this->call('breeze:install', ['stack' => 'blade', '--quiet' => true]);
     }
 
     protected function installSanctum(): void
     {
         $this->info('Installing Laravel Sanctum...');
-        $this->runCommand(['composer', 'require', 'laravel/sanctum', '--dev']);
+        $this->executeShellCommand(['composer', 'require', 'laravel/sanctum', '--dev']);
         $this->call('vendor:publish', ['--provider' => 'Laravel\Sanctum\SanctumServiceProvider', '--force' => true]);
     }
 
-    protected function runCommand(array $command): void
+    protected function executeShellCommand(array $command): void
     {
         $process = new Process($command, base_path());
         $process->setTimeout(300);
