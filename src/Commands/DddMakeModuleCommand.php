@@ -56,7 +56,6 @@ class DddMakeModuleCommand extends Command
             'Http/Requests',
             'Http/Resources',
             'Routes',
-            'Database/Migrations',
             'Providers',
             'Tests/Unit/Entities',
             'Tests/Unit/Services',
@@ -461,7 +460,9 @@ return new class extends Migration
 };
 PHP;
 
-        $this->createFile("Database/Migrations/{$timestamp}_create_{$tableName}_table.php", $content);
+        $migrationPath = database_path("migrations/{$timestamp}_create_{$tableName}_table.php");
+        File::put($migrationPath, $content);
+        $this->line("Created: database/migrations/{$timestamp}_create_{$tableName}_table.php");
     }
 
     protected function createTests(): void
