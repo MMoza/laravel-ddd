@@ -861,10 +861,10 @@ PHP;
 
         if ($testPackage === 'pest') {
             $unitContent = $this->getPestEntityTestContent($entityName, $moduleName);
-            $featureContent = $this->getPestFeatureTestContent($entityName, $routeName);
+            $featureContent = $this->getPestFeatureTestContent($entityName, $moduleName, $routeName);
         } else {
             $unitContent = $this->getPhpUnitEntityTestContent($entityName, $moduleName);
-            $featureContent = $this->getPhpUnitFeatureTestContent($entityName, $routeName);
+            $featureContent = $this->getPhpUnitFeatureTestContent($entityName, $moduleName, $routeName);
         }
 
         $this->createFile("Tests/Unit/Entities/{$entityName}Test.php", $unitContent);
@@ -895,7 +895,7 @@ class {$entityName}Test extends TestCase
 PHP;
     }
 
-    protected function getPhpUnitFeatureTestContent(string $entityName, string $routeName): string
+    protected function getPhpUnitFeatureTestContent(string $entityName, string $moduleName, string $routeName): string
     {
         return <<<PHP
 <?php
@@ -932,7 +932,7 @@ test('{$entityName} can be created', function () {
 PHP;
     }
 
-    protected function getPestFeatureTestContent(string $entityName, string $routeName): string
+    protected function getPestFeatureTestContent(string $entityName, string $moduleName, string $routeName): string
     {
         return <<<PHP
 <?php
