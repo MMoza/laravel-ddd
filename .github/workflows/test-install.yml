@@ -55,7 +55,7 @@ jobs:
 
     - name: Run DDD Installation
       working-directory: test-project
-      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }} --docs=en
+      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }} --docs=en --agents=yes
 
     - name: Verify Structure
       working-directory: test-project
@@ -82,3 +82,4 @@ jobs:
         test -f docs/ddd/ddd-guide.md && echo "✅ DDD guide exists"
         test -f docs/ddd/commands.md && echo "✅ Commands reference exists"
         test -f docs/ddd/best-practices.md && echo "✅ Best practices exists"
+        test -f docs/AGENTS.md && echo "✅ AGENTS.md exists"

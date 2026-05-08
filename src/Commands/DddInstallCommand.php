@@ -11,7 +11,8 @@ class DddInstallCommand extends Command
     protected $signature = 'ddd:install
         {--auth= : Authentication option (none|breeze|sanctum)}
         {--module= : Sample module (none|users)}
-        {--docs= : Documentation language (en|es|both|no)}';
+        {--docs= : Documentation language (en|es|both|no)}
+        {--agents= : Download AGENTS.md for AI agents (yes|no)}';
 
     protected $description = 'Install DDD structure in Laravel project';
 
@@ -35,6 +36,12 @@ class DddInstallCommand extends Command
             'en'
         );
 
+        $agents = $this->option('agents') ?? $this->choice(
+            'Download AGENTS.md for AI agents?',
+            ['yes' => 'Yes (recommended)', 'no' => 'No thanks'],
+            'yes'
+        );
+
         $this->info('Installing DDD structure...');
 
         $this->createDirectoryStructure();
@@ -43,6 +50,10 @@ class DddInstallCommand extends Command
 
         if ($docs !== 'no') {
             $this->copyDocumentation($docs);
+        }
+
+        if ($agents === 'yes') {
+            $this->copyAgentsFile();
         }
 
         if ($module === 'users') {
@@ -267,6 +278,22 @@ PHP;
         }
 
         $this->line('Created: docs/ddd/');
+    }
+
+    protected function copyAgentsFile(): void
+    {
+        $docsPath = base_path('docs');
+        if (!File::exists($docsPath)) {
+            File::makeDirectory($docsPath, 0755, true);
+        }
+
+        $stubPath = __DIR__ . '/../stubs/docs';
+
+        if (File::exists($stubPath . '/AGENTS.md')) {
+            File::copy($stubPath . '/AGENTS.md', $docsPath . '/AGENTS.md');
+        }
+
+        $this->line('Created: docs/AGENTS.md');
     }
 
     protected function createUsersModule(): void
