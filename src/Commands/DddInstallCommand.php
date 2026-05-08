@@ -243,7 +243,7 @@ PHP;
             File::makeDirectory($docsPath, 0755, true);
         }
 
-        $stubPath = __DIR__ . '/../Stubs/docs';
+        $stubPath = __DIR__ . '/../stubs/docs';
 
         // Always copy English docs
         $englishDocs = [
