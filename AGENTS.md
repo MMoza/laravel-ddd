@@ -1,106 +1,103 @@
-# Laravel DDD Starter Kit - Especificación
+# AGENTS.md - Laravel DDD Starter Kit
 
-## Objetivo
-Crear un paquete Composer instalable que transforme un proyecto Laravel 13/12 en una estructura DDD.
+## GitFlow Workflow
 
-## Compatibilidad
-- Laravel: 13.x y 12.x
-- PHP: 8.4+
+### Branch Structure
+```
+main        → Production code (only merges from release/*)
+develop     → Active development branch
+feature/*   → New features (from develop)
+fix/*       → Bug fixes (from develop)
+release/*   → Release preparation (from develop → main)
+hotfix/*    → Urgent production fixes (from main → develop + main)
+```
 
-## Paquete
-- Nombre: `laravel-ddd/starter`
-- Distribuidor: GitHub + Packagist
-- Tipo: Paquete Composer instalable
+### Creating New Work
 
-## Flujo de Usuario
+**Feature:**
 ```bash
-composer create-project laravel/laravel mi-proyecto
-cd mi-proyecto
-composer require laravel-ddd/starter
-php artisan ddd:install  # Instalador interactivo
+git checkout develop
+git pull origin develop
+git checkout -b feature/description
+# Work + tests
+git push origin feature/description
+# Create PR → develop
 ```
 
-## Estructura DDD (app/)
-```
-app/
-├── Domains/                    # Lógica de negocio
-│   ├── Base/
-│   │   ├── Entity.php
-│   │   ├── ValueObject.php
-│   │   ├── RepositoryInterface.php
-│   │   └── Service.php
-│   └── [Module]/
-│       ├── Entities/
-│       ├── ValueObjects/
-│       ├── Repositories/
-│       ├── Services/
-│       ├── Tests/
-│       ├── Http/Controllers/
-│       ├── Http/Requests/
-│       ├── Http/Resources/
-│       ├── Providers/
-│       ├── Routes/
-│       └── Database/Migrations/
-├── Application/                 # Casos de uso/Actions
-├── Infrastructure/              # Implementaciones
-│   ├── Persistence/
-│   └── HTTP/
-├── Support/                    # Helpers
-├── Providers/                  # Service Providers
-Http/Controllers/              # Thin controllers (delegan a Application)
-Models/                        # Modelos Eloquent (sin lógica de negocio)
-routes/domains/                # Rutas por módulo
-tests/Unit/Domains/           # Tests por módulo
-tests/Feature/Domains/
+**Bug Fix:**
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b fix/description
+# Work + tests
+git push origin fix/description
+# Create PR → develop
 ```
 
-## Commands Artisan
-| Comando | Descripción |
-|---------|-------------|
-| `ddd:install` | Instalador interactivo |
-| `ddd:make-module <name>` | Crea módulo completo |
-| `ddd:make-entity <name>` | Entidad + modelo + migration + test |
-| `ddd:make-service <name>` | Crea servicio + test |
-| `ddd:make-repository <name>` | Interface + Eloquent + test |
-| `ddd:make-value-object <name>` | Value object |
-| `ddd:make-controller <name>` | Thin controller |
-| `ddd:make-request <name>` | Form request |
-| `ddd:make-resource <name>` | API resource |
-| `ddd:make-routes <name>` | Genera rutas del módulo |
-| `ddd:list` | Lista módulos existentes |
-| `ddd:test` | Ejecuta tests del proyecto |
+**Release:**
+```bash
+git checkout develop
+git pull origin develop
+git checkout -b release/x.y.z
+# Update composer.json version
+# Final tests
+git tag -a vx.y.z -m "Release vx.y.z"
+git push origin release/x.y.z
+# Create PR → main
+```
 
-## Instalador Interactivo
-1. Authentication: None / Breeze / Sanctum
-2. Sample Module: None / Users (recomendado)
+**Hotfix:**
+```bash
+git checkout main
+git pull origin main
+git checkout -b hotfix/description
+# Fix + tests
+git tag -a vx.y.z -m "Release vx.y.z"
+git push origin hotfix/description
+# Create PR → main
+```
 
-## Base Classes (Domains/Base/)
-- `Entity.php` - Clase base para entidades con id, timestamps
-- `ValueObject.php` - Clase base para value objects inmutables
-- `RepositoryInterface.php` - Interfaz base para repositorios
-- `Service.php` - Clase base para servicios
+### Conventional Commits
 
-## Excluir de DDD (mantener estructura Laravel)
-- `database/migrations/` - Sin cambios
-- `database/factories/`
-- `database/seeders/`
-- `routes/` (excepto domains/)
-- `bootstrap/`
-- `config/`
-- `public/`
-- `resources/`
-- `storage/`
-- `tests/` - Estructura global pero con subcarpetas Domains
+| Type | Description |
+|------|-------------|
+| `feat:` | New feature |
+| `fix:` | Bug fix |
+| `docs:` | Documentation |
+| `style:` | Formatting (no code changes) |
+| `refactor:` | Code refactoring |
+| `test:` | Tests |
+| `chore:` | Maintenance |
 
-## Testing
-- Tests dentro de cada módulo en `Tests/Unit/` y `Tests/Feature/`
-- También disponibles en `tests/Unit/Domains/` y `tests/Feature/Domains/`
+**Examples:**
+```
+feat: Add test package selection
+fix: Missing moduleName parameter
+docs: Update README
+refactor: Improve test generation
+```
 
-## Documentación
-- `docs/commands.md` - Referencia de comandos
-- `README.md` - Uso del paquete
+### Testing
 
-## Servicios a Instalar según selección
-- None: Solo estructura DDD
-- Breeze: `composer require laravel/breeze --dev` + configure
-- Sanctum: `composer require laravel/sanctum --dev` + configure
+Always run tests before committing:
+```bash
+./vendor/bin/phpunit
+```
+
+### Branch Protection Rules
+
+| Branch | Protected | Rules |
+|--------|-----------|-------|
+| `main` | ✅ | Require 1 review, no force push |
+| `develop` | ✅ | Require 1 review, no force push |
+| `release/*` | ❌ | Require 1 review |
+| `hotfix/*` | ❌ | Require 1 review |
+
+### Versioning
+
+Use semantic versioning: `vMajor.Minor.Patch`
+- `v1.0.0` - Initial release
+- `v1.1.0` - New features
+- `v1.0.1` - Bug fixes
+
+Tags are only created from `main` or `release/*` branches.
