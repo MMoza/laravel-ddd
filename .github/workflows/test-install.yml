@@ -55,7 +55,7 @@ jobs:
 
     - name: Run DDD Installation
       working-directory: test-project
-      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }} --docs=en --agents=yes
+      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }} --docs=en --agents=yes --test=phpunit
 
     - name: Verify Structure
       working-directory: test-project

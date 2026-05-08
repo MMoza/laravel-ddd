@@ -86,14 +86,33 @@ PHP;
 
     protected function createTest(string $name, string $module): void
     {
+        $testPackage = config('ddd.test_package', 'phpunit');
+
+        if ($testPackage === 'none') {
+            return;
+        }
+
         $testPath = base_path("tests/Unit/Domains/{$module}/Services");
         if (!File::exists($testPath)) {
             File::makeDirectory($testPath, 0755, true);
         }
 
+        if ($testPackage === 'pest') {
+            $content = $this->getPestTestContent($name, $module);
+        } else {
+            $content = $this->getPhpUnitTestContent($name, $module);
+        }
+
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Services/{$name}Test.php");
+    }
+
+    protected function getPhpUnitTestContent(string $name, string $module): string
+    {
         $repoName = Str::replace('Service', '', $name) . 'RepositoryInterface';
 
-        $content = <<<PHP
+        return <<<PHP
 <?php
 
 namespace Tests\Unit\Domains\\{$module}\Services;
@@ -113,9 +132,23 @@ class {$name}Test extends TestCase
     }
 }
 PHP;
+    }
 
-        $filePath = $testPath . "/{$name}Test.php";
-        File::put($filePath, $content);
-        $this->info("Created: tests/Unit/Domains/{$module}/Services/{$name}Test.php");
+    protected function getPestTestContent(string $name, string $module): string
+    {
+        $repoName = Str::replace('Service', '', $name) . 'RepositoryInterface';
+
+        return <<<PHP
+<?php
+
+use App\Domains\\{$module}\Services\\{$name};
+use App\Domains\\{$module}\Repositories\\{$repoName};
+
+test('{$name} can be created', function () use ({$repoName} \$repository) {
+    \$service = new {$name}(\$repository);
+
+    expect(\$service)->toBeInstanceOf({$name}::class);
+});
+PHP;
     }
 }

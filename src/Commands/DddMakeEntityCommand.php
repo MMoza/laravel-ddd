@@ -140,12 +140,31 @@ PHP;
 
     protected function createTest(string $name, string $module): void
     {
+        $testPackage = config('ddd.test_package', 'phpunit');
+
+        if ($testPackage === 'none') {
+            return;
+        }
+
         $testPath = base_path("tests/Unit/Domains/{$module}/Entities");
         if (!File::exists($testPath)) {
             File::makeDirectory($testPath, 0755, true);
         }
 
-        $content = <<<PHP
+        if ($testPackage === 'pest') {
+            $content = $this->getPestTestContent($name, $module);
+        } else {
+            $content = $this->getPhpUnitTestContent($name, $module);
+        }
+
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Entities/{$name}Test.php");
+    }
+
+    protected function getPhpUnitTestContent(string $name, string $module): string
+    {
+        return <<<PHP
 <?php
 
 namespace Tests\Unit\Domains\\{$module}\Entities;
@@ -165,10 +184,23 @@ class {$name}Test extends TestCase
     }
 }
 PHP;
+    }
 
-        $filePath = $testPath . "/{$name}Test.php";
-        File::put($filePath, $content);
-        $this->info("Created: tests/Unit/Domains/{$module}/Entities/{$name}Test.php");
+    protected function getPestTestContent(string $name, string $module): string
+    {
+        return <<<PHP
+<?php
+
+use App\Domains\\{$module}\Entities\\{$name};
+
+test('{$name} can be created', function () {
+    \$entity = new {$name}([
+        'id' => 'test-uuid',
+    ]);
+
+    expect(\$entity->getId())->toBe('test-uuid');
+});
+PHP;
     }
 
     protected function tableName(string $name): string

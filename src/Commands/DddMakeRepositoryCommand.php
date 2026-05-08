@@ -109,14 +109,31 @@ PHP;
 
     protected function createTest(string $name, string $module): void
     {
+        $testPackage = config('ddd.test_package', 'phpunit');
+
+        if ($testPackage === 'none') {
+            return;
+        }
+
         $testPath = base_path("tests/Unit/Domains/{$module}/Repositories");
         if (!File::exists($testPath)) {
             File::makeDirectory($testPath, 0755, true);
         }
 
-        $entityName = Str::replace('Repository', '', $name);
+        if ($testPackage === 'pest') {
+            $content = $this->getPestTestContent($name, $module);
+        } else {
+            $content = $this->getPhpUnitTestContent($name, $module);
+        }
 
-        $content = <<<PHP
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Repositories/{$name}Test.php");
+    }
+
+    protected function getPhpUnitTestContent(string $name, string $module): string
+    {
+        return <<<PHP
 <?php
 
 namespace Tests\Unit\Domains\\{$module}\Repositories;
@@ -135,9 +152,19 @@ class {$name}Test extends TestCase
     }
 }
 PHP;
+    }
 
-        $filePath = $testPath . "/{$name}Test.php";
-        File::put($filePath, $content);
-        $this->info("Created: tests/Unit/Domains/{$module}/Repositories/{$name}Test.php");
+    protected function getPestTestContent(string $name, string $module): string
+    {
+        return <<<PHP
+<?php
+
+use App\Domains\\{$module}\Repositories\\{$name}Interface;
+use App\Domains\\{$module}\Repositories\\{$name};
+
+test('{$name} implements interface', function () {
+    expect(is_a({$name}::class, {$name}Interface::class, true))->toBeTrue();
+});
+PHP;
     }
 }

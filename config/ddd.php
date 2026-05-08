@@ -13,5 +13,7 @@ return [
 
     'generate_tests' => true,
 
+    'test_package' => 'phpunit',
+
     'routes_path' => base_path('routes/domains'),
 ];

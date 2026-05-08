@@ -849,11 +849,31 @@ PHP;
 
     protected function createTests(): void
     {
+        $testPackage = config('ddd.test_package', 'phpunit');
+
+        if ($testPackage === 'none') {
+            return;
+        }
+
         $moduleName = $this->moduleName;
         $entityName = $this->entityName;
         $routeName = $this->routeName();
 
-        $content = <<<PHP
+        if ($testPackage === 'pest') {
+            $unitContent = $this->getPestEntityTestContent($entityName, $moduleName);
+            $featureContent = $this->getPestFeatureTestContent($entityName, $routeName);
+        } else {
+            $unitContent = $this->getPhpUnitEntityTestContent($entityName, $moduleName);
+            $featureContent = $this->getPhpUnitFeatureTestContent($entityName, $routeName);
+        }
+
+        $this->createFile("Tests/Unit/Entities/{$entityName}Test.php", $unitContent);
+        $this->createFile("Tests/Feature/{$entityName}FeatureTest.php", $featureContent);
+    }
+
+    protected function getPhpUnitEntityTestContent(string $entityName, string $moduleName): string
+    {
+        return <<<PHP
 <?php
 
 namespace Tests\Unit\Domains\\{$moduleName}\Entities;
@@ -873,10 +893,11 @@ class {$entityName}Test extends TestCase
     }
 }
 PHP;
+    }
 
-        $this->createFile("Tests/Unit/Entities/{$entityName}Test.php", $content);
-
-        $content = <<<PHP
+    protected function getPhpUnitFeatureTestContent(string $entityName, string $routeName): string
+    {
+        return <<<PHP
 <?php
 
 namespace Tests\Feature\Domains\\{$moduleName};
@@ -892,8 +913,35 @@ class {$entityName}FeatureTest extends TestCase
     }
 }
 PHP;
+    }
 
-        $this->createFile("Tests/Feature/{$entityName}FeatureTest.php", $content);
+    protected function getPestEntityTestContent(string $entityName, string $moduleName): string
+    {
+        return <<<PHP
+<?php
+
+use App\Domains\\{$moduleName}\Entities\\{$entityName};
+
+test('{$entityName} can be created', function () {
+    \$entity = new {$entityName}([
+        'id' => 'test-uuid',
+    ]);
+
+    expect(\$entity->getId())->toBe('test-uuid');
+});
+PHP;
+    }
+
+    protected function getPestFeatureTestContent(string $entityName, string $routeName): string
+    {
+        return <<<PHP
+<?php
+
+test('{$entityName} index returns json', function () {
+    \$response = \$this->getJson('/api/{$routeName}');
+    \$response->assertStatus(200);
+});
+PHP;
     }
 
     protected function createFile(string $relativePath, string $content): void

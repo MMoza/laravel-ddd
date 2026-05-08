@@ -12,7 +12,8 @@ class DddInstallCommand extends Command
         {--auth= : Authentication option (none|breeze|sanctum)}
         {--module= : Sample module (none|users)}
         {--docs= : Documentation language (en|es|both|no)}
-        {--agents= : Download AGENTS.md for AI agents (yes|no)}';
+        {--agents= : Download AGENTS.md for AI agents (yes|no)}
+        {--test= : Test package (phpunit|pest|none)}';
 
     protected $description = 'Install DDD structure in Laravel project';
 
@@ -42,11 +43,18 @@ class DddInstallCommand extends Command
             'yes'
         );
 
+        $testPackage = $this->option('test') ?? $this->choice(
+            'Test Package',
+            ['phpunit' => 'PHPUnit (default)', 'pest' => 'Pest PHP', 'none' => 'None'],
+            'phpunit'
+        );
+
         $this->info('Installing DDD structure...');
 
         $this->createDirectoryStructure();
         $this->copyBaseClasses();
         $this->createDomainsFolder();
+        $this->saveTestPackagePreference($testPackage);
 
         if ($docs !== 'no') {
             $this->copyDocumentation($docs);
@@ -294,6 +302,22 @@ PHP;
         }
 
         $this->line('Created: docs/AGENTS.md');
+    }
+
+    protected function saveTestPackagePreference(string $testPackage): void
+    {
+        $configPath = config_path('ddd.php');
+
+        if (!File::exists($configPath)) {
+            $stubPath = __DIR__ . '/../../config/ddd.php';
+            File::copy($stubPath, $configPath);
+        }
+
+        $content = File::get($configPath);
+        $content = str_replace("'test_package' => 'phpunit'", "'test_package' => '{$testPackage}'", $content);
+        File::put($configPath, $content);
+
+        $this->line("Created: config/ddd.php (test_package: {$testPackage})");
     }
 
     protected function createUsersModule(): void
