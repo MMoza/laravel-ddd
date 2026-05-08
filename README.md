@@ -159,6 +159,7 @@ database/
 | `ddd:make-request` | Create a form request |
 | `ddd:make-resource` | Create an API resource |
 | `ddd:make-routes` | Generate routes for a module |
+| `ddd:list` | List all DDD modules |
 
 For detailed documentation, see [docs/commands.md](docs/commands.md)
 

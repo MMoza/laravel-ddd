@@ -59,14 +59,16 @@ tests/Feature/Domains/
 |---------|-------------|
 | `ddd:install` | Instalador interactivo |
 | `ddd:make-module <name>` | Crea módulo completo |
-| `ddd:make-entity <name>` | Entidad + modelo + migration |
-| `ddd:make-service <name>` | Crea servicio |
-| `ddd:make-repository <name>` | Interface + Eloquent |
+| `ddd:make-entity <name>` | Entidad + modelo + migration + test |
+| `ddd:make-service <name>` | Crea servicio + test |
+| `ddd:make-repository <name>` | Interface + Eloquent + test |
 | `ddd:make-value-object <name>` | Value object |
 | `ddd:make-controller <name>` | Thin controller |
 | `ddd:make-request <name>` | Form request |
 | `ddd:make-resource <name>` | API resource |
 | `ddd:make-routes <name>` | Genera rutas del módulo |
+| `ddd:list` | Lista módulos existentes |
+| `ddd:test` | Ejecuta tests del proyecto |
 
 ## Instalador Interactivo
 1. Authentication: None / Breeze / Sanctum

@@ -251,7 +251,35 @@ php artisan ddd:make-routes Posts --api
 
 ---
 
-## Directory Structure
+### `ddd:list`
+
+Lists all DDD modules in the project with their components.
+
+**Signature:**
+```bash
+php artisan ddd:list
+```
+
+**Example:**
+```bash
+php artisan ddd:list
+```
+
+**Output:**
+```
++----------+----------+----------+--------------+-------------+----------+-----------+
+| Module   | Entities | Services | Repositories | Controllers | Requests | Resources |
++----------+----------+----------+--------------+-------------+----------+-----------+
+| Users    | ✓ (1)   | ✓ (1)   | ✓ (2)       | ✓ (1)      | ✓ (2)   | ✓ (1)    |
+| Products | ✓ (2)   | ✓ (1)   | -            | ✓ (1)      | -        | -         |
++----------+----------+----------+--------------+-------------+----------+-----------+
+
+Total: 2 module(s)
+```
+
+---
+
+### `ddd:test`
 
 After `ddd:install`, your project will have:
 

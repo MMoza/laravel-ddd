@@ -75,6 +75,8 @@ PHP;
             $this->createMigration($name, $module);
         }
 
+        $this->createTest($name, $module);
+
         return self::SUCCESS;
     }
 
@@ -134,6 +136,39 @@ PHP;
         $migrationPath = database_path("migrations/{$timestamp}_create_{$tableName}_table.php");
         File::put($migrationPath, $content);
         $this->info("Created: database/migrations/{$timestamp}_create_{$tableName}_table.php");
+    }
+
+    protected function createTest(string $name, string $module): void
+    {
+        $testPath = base_path("tests/Unit/Domains/{$module}/Entities");
+        if (!File::exists($testPath)) {
+            File::makeDirectory($testPath, 0755, true);
+        }
+
+        $content = <<<PHP
+<?php
+
+namespace Tests\Unit\Domains\\{$module}\Entities;
+
+use Tests\TestCase;
+use App\Domains\\{$module}\Entities\\{$name};
+
+class {$name}Test extends TestCase
+{
+    public function test_{$name}_can_be_created(): void
+    {
+        \$entity = new {$name}([
+            'id' => 'test-uuid',
+        ]);
+
+        \$this->assertEquals('test-uuid', \$entity->getId());
+    }
+}
+PHP;
+
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Entities/{$name}Test.php");
     }
 
     protected function tableName(string $name): string

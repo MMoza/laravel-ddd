@@ -79,6 +79,43 @@ PHP;
         File::put($filePath, $content);
         $this->info("Created: {$module}/Services/{$name}.php");
 
+        $this->createTest($name, $module);
+
         return self::SUCCESS;
+    }
+
+    protected function createTest(string $name, string $module): void
+    {
+        $testPath = base_path("tests/Unit/Domains/{$module}/Services");
+        if (!File::exists($testPath)) {
+            File::makeDirectory($testPath, 0755, true);
+        }
+
+        $repoName = Str::replace('Service', '', $name) . 'RepositoryInterface';
+
+        $content = <<<PHP
+<?php
+
+namespace Tests\Unit\Domains\\{$module}\Services;
+
+use Tests\TestCase;
+use App\Domains\\{$module}\Services\\{$name};
+use App\Domains\\{$module}\Repositories\\{$repoName};
+
+class {$name}Test extends TestCase
+{
+    public function test_{$name}_can_be_created(): void
+    {
+        \$repository = \$this->mock({$repoName}::class);
+        \$service = new {$name}(\$repository);
+
+        \$this->assertInstanceOf({$name}::class, \$service);
+    }
+}
+PHP;
+
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Services/{$name}Test.php");
     }
 }

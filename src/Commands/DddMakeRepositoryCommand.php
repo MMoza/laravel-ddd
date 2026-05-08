@@ -102,6 +102,42 @@ PHP;
             $this->info("Created: {$module}/Repositories/{$name}.php");
         }
 
+        $this->createTest($name, $module);
+
         return self::SUCCESS;
+    }
+
+    protected function createTest(string $name, string $module): void
+    {
+        $testPath = base_path("tests/Unit/Domains/{$module}/Repositories");
+        if (!File::exists($testPath)) {
+            File::makeDirectory($testPath, 0755, true);
+        }
+
+        $entityName = Str::replace('Repository', '', $name);
+
+        $content = <<<PHP
+<?php
+
+namespace Tests\Unit\Domains\\{$module}\Repositories;
+
+use Tests\TestCase;
+use App\Domains\\{$module}\Repositories\\{$name}Interface;
+use App\Domains\\{$module}\Repositories\\{$name};
+
+class {$name}Test extends TestCase
+{
+    public function test_{$name}_implements_interface(): void
+    {
+        \$this->assertTrue(
+            is_a({$name}::class, {$name}Interface::class, true)
+        );
+    }
+}
+PHP;
+
+        $filePath = $testPath . "/{$name}Test.php";
+        File::put($filePath, $content);
+        $this->info("Created: tests/Unit/Domains/{$module}/Repositories/{$name}Test.php");
     }
 }
