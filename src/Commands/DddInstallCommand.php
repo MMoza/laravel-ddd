@@ -10,7 +10,8 @@ class DddInstallCommand extends Command
 {
     protected $signature = 'ddd:install
         {--auth= : Authentication option (none|breeze|sanctum)}
-        {--module= : Sample module (none|users)}';
+        {--module= : Sample module (none|users)}
+        {--docs= : Documentation language (en|es|both|no)}';
 
     protected $description = 'Install DDD structure in Laravel project';
 
@@ -28,11 +29,21 @@ class DddInstallCommand extends Command
             'users'
         );
 
+        $docs = $this->option('docs') ?? $this->choice(
+            'Documentation',
+            ['en' => 'English', 'es' => 'Español', 'both' => 'Both languages', 'no' => 'No thanks'],
+            'en'
+        );
+
         $this->info('Installing DDD structure...');
 
         $this->createDirectoryStructure();
         $this->copyBaseClasses();
         $this->createDomainsFolder();
+
+        if ($docs !== 'no') {
+            $this->copyDocumentation($docs);
+        }
 
         if ($module === 'users') {
             $this->createUsersModule();
@@ -223,6 +234,39 @@ PHP;
         if (!File::exists($domainsPath)) {
             File::makeDirectory($domainsPath, 0755, true);
         }
+    }
+
+    protected function copyDocumentation(string $lang): void
+    {
+        $docsPath = base_path('docs/ddd');
+        if (!File::exists($docsPath)) {
+            File::makeDirectory($docsPath, 0755, true);
+        }
+
+        $stubPath = __DIR__ . '/../Stubs/docs';
+
+        // Always copy English docs
+        $englishDocs = [
+            'ddd-guide.md',
+            'commands.md',
+            'best-practices.md',
+            'routes.md',
+        ];
+
+        foreach ($englishDocs as $file) {
+            if (File::exists($stubPath . '/' . $file)) {
+                File::copy($stubPath . '/' . $file, $docsPath . '/' . $file);
+            }
+        }
+
+        // Copy Spanish docs if selected
+        if (in_array($lang, ['es', 'both'])) {
+            if (File::exists($stubPath . '/ddd-guide-es.md')) {
+                File::copy($stubPath . '/ddd-guide-es.md', $docsPath . '/ddd-guide-es.md');
+            }
+        }
+
+        $this->line('Created: docs/ddd/');
     }
 
     protected function createUsersModule(): void

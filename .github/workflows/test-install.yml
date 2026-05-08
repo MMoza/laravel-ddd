@@ -55,7 +55,7 @@ jobs:
 
     - name: Run DDD Installation
       working-directory: test-project
-      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }}
+      run: php artisan ddd:install --auth=${{ matrix.auth }} --module=${{ matrix.module }} --docs=en
 
     - name: Verify Structure
       working-directory: test-project
@@ -77,3 +77,8 @@ jobs:
         if [ "${{ matrix.auth }}" = "sanctum" ]; then
           grep -q "laravel/sanctum" composer.lock && echo "✅ Sanctum installed"
         fi
+        
+        test -d docs/ddd && echo "✅ DDD docs directory exists"
+        test -f docs/ddd/ddd-guide.md && echo "✅ DDD guide exists"
+        test -f docs/ddd/commands.md && echo "✅ Commands reference exists"
+        test -f docs/ddd/best-practices.md && echo "✅ Best practices exists"
