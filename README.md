@@ -6,11 +6,12 @@ A powerful and flexible Composer package that transforms a fresh Laravel 13/12 p
 
 ✅ **Complete DDD Structure** - Organized by domains/modules  
 ✅ **Base Classes** - Entity, ValueObject, Repository, Service  
-✅ **10+ Artisan Commands** - Generate modules, entities, services, and more  
-✅ **Interactive Installation** - Choose auth method (Breeze, Sanctum, or none)  
+✅ **12 Artisan Commands** - Generate modules, entities, services, and more  
+✅ **Interactive Installation** - Choose auth, sample module, docs, test package, and AI context  
+✅ **Automatic Test Generation** - PHPUnit, Pest, or none - tests generated with every command  
 ✅ **Sample Module** - Optional Users module with full examples  
 ✅ **API Ready** - Routes organized by domain  
-✅ **Testing Structure** - Tests organized per module  
+✅ **AI Agent Ready** - Optional AGENTS.md for AI context  
 ✅ **Laravel 13 & 12 Support** - Works with both versions  
 ✅ **PHP 8.4+** - Modern PHP requirements  
 
@@ -20,6 +21,8 @@ A powerful and flexible Composer package that transforms a fresh Laravel 13/12 p
 
 ```bash
 composer create-project laravel/laravel my-project
+# or
+laravel new my-project
 cd my-project
 ```
 
@@ -38,6 +41,9 @@ php artisan ddd:install
 You'll be asked:
 - **Authentication**: None / Breeze / Sanctum
 - **Sample Module**: None / Users (recommended)
+- **Documentation**: English / Español / Both / No
+- **AI Context**: Download AGENTS.md for AI agents?
+- **Test Package**: PHPUnit / Pest / None
 
 That's it! Your project is now DDD-structured.
 
@@ -56,16 +62,19 @@ This creates:
 - Controllers
 - Routes
 - Migrations
-- Tests
+- Tests (based on your selected test package)
 
 ### Generate individual components
 
 ```bash
-# Create an entity
+# Create an entity + test
 php artisan ddd:make-entity Product Products --migration --model
 
-# Create a service
+# Create a service + test
 php artisan ddd:make-service ProductService Products
+
+# Create a repository + test
+php artisan ddd:make-repository ProductRepository Products --eloquent
 
 # Create a controller
 php artisan ddd:make-controller ProductController Products
@@ -79,6 +88,9 @@ php artisan ddd:make-resource ProductResource Products
 
 # Create value objects
 php artisan ddd:make-value-object Price Products
+
+# List all modules
+php artisan ddd:list
 ```
 
 ## Project Structure
@@ -139,6 +151,15 @@ tests/
 ├── Unit/Domains/
 └── Feature/Domains/
 
+docs/
+├── ddd/                          # DDD documentation (optional)
+│   ├── ddd-guide.md
+│   ├── ddd-guide-es.md
+│   ├── commands.md
+│   ├── best-practices.md
+│   └── routes.md
+└── AGENTS.md                     # AI agent context (optional)
+
 database/
 ├── migrations/
 ├── factories/
@@ -160,6 +181,7 @@ database/
 | `ddd:make-resource` | Create an API resource |
 | `ddd:make-routes` | Generate routes for a module |
 | `ddd:list` | List all DDD modules |
+| `ddd:test` | Run project tests |
 
 For detailed documentation, see [docs/commands.md](docs/commands.md)
 
@@ -260,9 +282,17 @@ return [
     'support_path' => app_path('Support'),
     'providers_path' => app_path('Providers'),
     'default_namespace' => 'App\\Domains',
+    'stubs_path' => __DIR__ . '/../src/stubs',
     'generate_tests' => true,
+    'test_package' => 'phpunit',  // phpunit | pest | none
     'routes_path' => base_path('routes/domains'),
 ];
+```
+
+Publish the config:
+
+```bash
+php artisan vendor:publish --tag=ddd-config
 ```
 
 ## Compatibility
