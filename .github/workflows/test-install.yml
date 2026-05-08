@@ -2,9 +2,10 @@ name: Test Package Installation
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, develop ]
   pull_request:
-    branches: [ main ]
+    branches: [ main, develop ]
+  workflow_dispatch:
 
 jobs:
   test:
@@ -51,7 +52,7 @@ jobs:
       working-directory: test-project
       run: |
         composer config repositories.ddd vcs ${{ github.server_url }}/${{ github.repository }}
-        composer require laravel-ddd/starter:dev-main
+        composer require laravel-ddd/starter:dev-${{ github.head_ref || github.ref_name }}
 
     - name: Run DDD Installation
       working-directory: test-project
